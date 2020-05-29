@@ -1,0 +1,61 @@
+#*************************** Check Maxdiff Conjoint data
+
+### --------------------- Packages
+install.packages("tidyr")
+library("dplyr")
+library("readxl")
+library("reshape2")
+library("tidyr")
+
+### ------------------------ data
+
+ce_data <- read_excel("Data.xlsx")
+Design <- read.csv("Design.csv")
+
+
+#View(Design)
+
+#---------------------- Dummy Data frame
+
+df3 <- data.frame()
+
+##--------------------------- Transpose Data (Stacked data)
+
+nn=1
+lst1=c(298, 306, 314, 322, 330, 338, 346, 354, 362, 370, 378, 386, 394, 402, 410, 418, 426, 434, 442, 450, 458, 466, 474, 482, 490, 498)
+for (row in 1:nrow(ce_data)) {
+  j=0
+  for (k in lst1){
+    j=j+1
+    df3[nn,"respid"] <- ce_data[row,"respid"]
+    df3[nn,"Version"] <- ce_data[row,"cqhidVersion"]
+    df3[nn,"Set"] <- j
+    df3[nn,"DT_Item1"]<- ce_data[row,k]
+    df3[nn,"DT_Item2"]<- ce_data[row,k+1]
+    df3[nn,"DT_Item3"]<- ce_data[row,k+2]
+    df3[nn,"DT_Item4"]<- ce_data[row,k+3]
+    df3[nn,"DT_Item5"]<- ce_data[row,k+4]
+    df3[nn,"DT_Item6"]<- ce_data[row,k+5]
+    nn=nn+1
+  }
+  
+}
+
+df4 <- merge(df3,Design,by=c("Version","Set"))
+
+
+for (row in 1:nrow(df4)) {
+  rsm=0
+  rsm=rsm+abs(df4[row,4]-df4[row,10])
+  rsm=rsm+abs(df4[row,5]-df4[row,11])
+  rsm=rsm+abs(df4[row,6]-df4[row,12])
+  rsm=rsm+abs(df4[row,7]-df4[row,13])
+  rsm=rsm+abs(df4[row,8]-df4[row,14])
+  rsm=rsm+abs(df4[row,9]-df4[row,15])
+  
+  if(rsm != 0){
+    cat("Problem::: RESPID: ",df4[row,3]," , Version: ",df4[row,1]," , Set: ",df4[row,2] )
+    
+  }
+}
+

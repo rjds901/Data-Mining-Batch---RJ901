@@ -1,0 +1,207 @@
+####################Max-diff conjoint check
+
+import numpy as np
+import pandas as pd
+
+df1=pd.read_excel('Data.xlsx')
+df3=pd.read_excel('Design.xlsx')
+
+nrows=df1.shape[0]
+ncols=df1.shape[1]
+
+df2=pd.DataFrame(columns=['RES1','V1','S1','It1','It2','It3','It4','It5'])
+
+fst=[88,95,102,109,116,123,130,137,144,151,158,165]
+k=0
+for i in np.arange(0,nrows,1):
+  t=0
+  for j in fst:
+    t=t+1
+    df2.loc[k,'RES1']=df1.iloc[i,0]
+    df2.loc[k,'V1']=df1.iloc[i,87]
+    df2.loc[k,'S1']=t
+    df2.loc[k,'It1']=df1.iloc[i,j]
+    df2.loc[k,'It2']=df1.iloc[i,j+1]
+    df2.loc[k,'It3']=df1.iloc[i,j+2]
+    df2.loc[k,'It4']=df1.iloc[i,j+3]
+    df2.loc[k,'It5']=df1.iloc[i,j+4]
+    k=k+1
+
+df2.head(10)
+
+dfj1 = pd.merge(df2,df3,on =['V1','S1'],how ='inner')
+
+dfj1.head(4)
+
+for ind,i in dfj1.iterrows():
+    a1=dfj1.iloc[ind,3]-dfj1.iloc[ind,8]
+    a2=dfj1.iloc[ind,4]-dfj1.iloc[ind,9]
+    a3=dfj1.iloc[ind,5]-dfj1.iloc[ind,10]
+    a4=dfj1.iloc[ind,6]-dfj1.iloc[ind,11]
+    a5=dfj1.iloc[ind,7]-dfj1.iloc[ind,12]
+    
+    tota1=a1+a2+a3+a4+a5
+    if tota1==0:
+        dfj1.loc[ind,'CheckDesign'] = tota1
+    else:
+        dfj1.loc[ind,'CheckDesign'] = 'Problem'
+        print("Problem in Resp ID - " +  str(dfj1.iloc[ind,0]) + " Version: " + str(dfj1.iloc[ind,1]) + " Set: " + str(dfj1.iloc[ind,2]) + " and Row ID - " + str(ind+1))
+
+
+try:
+    print(dfj1['CheckDesign'].sum())
+    print('Data is matching with design')
+except:
+    print('Data is not matching with design')
+
+#****************************************************************************
+
+
+#####                 Edit Start -------**********************************************************************
+import numpy as np
+import pandas as pd
+
+#---------------- OE Check 
+
+def oqchk1(flt1,var1):
+    j=0
+    resp=0
+    for ind,i in df1.iterrows():
+        try: 
+            j=df1.loc[ind,flt1]
+            resp=df1.iloc[ind,0]
+            
+            if (j==1 and pd.isnull(df1.loc[ind,var1])==False):
+                pass
+            elif (j==0 and pd.isnull(df1.loc[ind,var1])==True):
+                pass
+            else:
+                print(var1 + " is not matching with " + flt1 + " RESP-ID: " + str(resp))
+                df1.loc[ind,'REJ_ACC']=1
+                
+        except:
+            print(" ROW-ID: " + str(ind+1) + " :: Please provide valid input :: ")
+
+
+def oqchk2(flt1,var1):
+    j=0
+    resp=0
+    for ind,i in df1.iterrows():
+        try: 
+            j=df1.loc[ind,flt1]
+            resp=df1.iloc[ind,0]
+            
+            if (j>=1 and pd.isnull(df1.loc[ind,var1])==False):
+                pass
+            elif (j<1 and pd.isnull(df1.loc[ind,var1])==True):
+                pass
+            else:
+                print(var1 + " OOR " + " RESP-ID: " + str(resp))
+                df1.loc[ind,'REJ_ACC']=1
+                
+        except:
+            print(" ROW-ID: " + str(ind+1) + " :: Please provide valid input :: ")
+
+
+#------------ CE Check
+def cqchk1(flt1,var1,code1):
+    j=0
+    resp=0
+    pp=0
+    #print(flt1)
+    #print(var1)
+    #print(code1)
+    for ind,i in df1.iterrows():
+        try: 
+            if (df1.loc[ind,flt1]>=1):
+                j=df1.loc[ind,var1]
+                resp=df1.iloc[ind,0]
+                #print(j)
+                if j in code1:
+                    pass
+                else:
+                    print(var1 + " OOR - " + str(j) + " RESP-ID: " + str(resp))
+                    df1.loc[ind,'REJ_ACC']=1
+            else:
+                print(" ROW-ID: " + str(ind+1) + " :: Please provide valid filter :: " + " RESP-ID: " + str(resp))
+                
+        except:
+            print(" ROW-ID: " + str(ind+1) + " :: Please provide valid input :: ")
+
+
+def multi1(qno1):
+    for ind,row in df1.iterrows():
+        t2=0
+        for k,i in enumerate(lst1):
+            t2=t2+df1.loc[ind,i]
+    
+        if (t2>=1):
+            pass
+        else:
+            print("RESP-ID: " + str(df1.iloc[ind,0]) + " :: " + qno1 + " - Wrong Multi-Check")
+            df1.loc[ind,'REJ_ACC']=1
+    
+
+def multi2(qno1,var2):
+    for ind,row in df1.iterrows():
+        t2=0
+        for k,i in enumerate(lst1):
+            t2=t2+df1.loc[ind,i]
+
+        #print(t2)
+        if (t2>=1):
+            pass
+        else:
+            print("RESP-ID: " + str(df1.iloc[ind,0]) + " :: " + qno1 + " - Wrong Multi-Check")
+            df1.loc[ind,'REJ_ACC']=1
+    
+        if (t2==1 and df1.loc[ind,var2]==1):
+            pass
+        else:
+            print("RESP-ID: " + str(df1.iloc[ind,0]) + " :: " + qno1 + " - Wrong Exclusive-Check for variable " + var2)
+            df1.loc[ind,'REJ_ACC']=1
+
+
+## --------------------------------------------------------
+
+def endp():
+    df1.drop(['Total','Target'], axis=1,inplace=True)
+    rejt1=df1['REJ_ACC'].sum()
+    clnresp=len(df1)-rejt1
+    print("No of Total Respondents: " + str(len(df1)))
+    print("No of Rejected Respondents: " + str(rejt1))
+    print("No of Clean Respondents: " + str(clnresp))
+    df1.drop(['REJ_ACC'], axis=1,inplace=True)
+
+##### -------**********************************************************************
+
+
+df_CE=pd.read_excel('CE_DATA .xlsx')
+df_OE=pd.read_excel('OE_DATA.xlsx')
+df_OE.drop(['interview_end','duration','respStatus'], axis=1,inplace=True)
+
+df1 = pd.merge(df_CE,df_OE,on =['respid'],how ='inner') 
+# df1=pd.read_excel('Data.xlsx')
+df1['Total']=1
+df1['Target']=0
+df1['REJ_ACC']=0
+
+#####                 Edit End -------**********************************************************************
+
+
+df_CE=pd.read_excel('CE_DATA .xlsx')
+df_OE=pd.read_excel('OE_DATA.xlsx')
+df_OE.drop(['interview_end','duration','respStatus'], axis=1,inplace=True)
+
+df1 = pd.merge(df_CE,df_OE,on =['respid'],how ='inner') 
+# df1=pd.read_excel('Data.xlsx')
+Total=df1.shape[1]
+
+df1[['respid','cq9_14','cq9_14_other']].head()
+
+oqchk1('cq9_14','cq9_14_other')
+
+oqchk2('Total','cqS4_7_other')
+
+endp()
+
